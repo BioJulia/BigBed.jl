@@ -16,7 +16,7 @@ Data representation and IO tools for the BigBed file format.
 [![Build status](https://ci.appveyor.com/api/projects/status/jny2ep4u3cmly8pj/branch/master?svg=true)](https://ci.appveyor.com/project/BioJulia/BigBed-jl/branch/master)
 [![BigBed](http://pkg.julialang.org/badges/BigBed_0.7.svg)](http://pkg.julialang.org/?pkg=BigBed)
 [![BigBed](http://pkg.julialang.org/badges/BigBed_1.0.svg)](http://pkg.julialang.org/?pkg=BigBed)
-[![codecov.io](http://codecov.io/github/BioJulia/BigBed.jl/coverage.svg?branch=master)](http://codecov.io/github/BioJulia/BigBed.jl?branch=master)
+[![codecov.io](http://codecov.io/github/BioJulia/BigBed.jl/coverage.svg?branch=master)](http://codecov.io/github/BioJulia/BigBed.jl?branch=master) [![Join the chat at https://gitter.im/BioJulia/BigBed.jl](https://badges.gitter.im/BioJulia/BigBed.jl.svg)](https://gitter.im/BioJulia/BigBed.jl?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 ## Installation
 You can install BigBed from the Julia REPL:

@@ -236,7 +236,6 @@ function Base.iterate(reader::Reader, state::IteratorState)
         state.record.reader = reader
         state.current_record += 1
         return copy(state.record), state
-    else
-        return nothing
     end
+    return nothing
 end

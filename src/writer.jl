@@ -253,7 +253,8 @@ function check_interval(state::WriterState, chromid::UInt32, chromstart::UInt32,
     # NOTE: BigBed allows empty intervals.
     if chromid < state.chromid || (chromid == state.chromid && chromstart < state.chromstart_prev)
         throw(ArgumentError("disordered intervals"))
-    elseif state.nfields != 3 + length(optionals)
+    end
+    if state.nfields != 3 + length(optionals)
         throw(ArgumentError("inconsistent field counts"))
     end
 end

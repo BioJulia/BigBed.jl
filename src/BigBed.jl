@@ -17,7 +17,7 @@ import Automa.RegExp: @re_str
 import BufferedStreams
 import ColorTypes
 import FixedPointNumbers: N0f8
-import GenomicFeatures: GenomicFeatures, Interval
+import GenomicFeatures: GenomicFeatures, Interval, seqname, leftposition, rightposition
 import Libz
 
 

@@ -148,13 +148,13 @@ function Base.write(writer::Writer, record::Tuple{String,Integer,Integer,Vararg}
 end
 
 function Base.write(writer::Writer, interval::GenomicFeatures.Interval{Nothing})
-    chromid = writer.chroms[interval.seqname][1]
-    return write_impl(writer, chromid, UInt32(interval.first - 1), UInt32(interval.last), ())
+    chromid = writer.chroms[seqname(interval)][1]
+    return write_impl(writer, chromid, UInt32(leftposition(interval) - 1), UInt32(rightposition(interval)), ())
 end
 
 function Base.write(writer::Writer, interval::GenomicFeatures.Interval{T}) where T<:Tuple
-    chromid = writer.chroms[interval.seqname][1]
-    return write_impl(writer, chromid, UInt32(interval.first - 1), UInt32(interval.last), interval.metadata...)
+    chromid = writer.chroms[seqname(interval)][1]
+    return write_impl(writer, chromid, UInt32(leftposition(interval) - 1), UInt32(rightposition(interval)), GenomicFeatures.metadata(interval)...)
 end
 
 function Base.close(writer::Writer)
@@ -362,8 +362,8 @@ function compute_section_summary(intervals::Vector{Interval{Nothing}})
     sum = 0.0
     ssq = 0.0
     for range in GenomicFeatures.coverage(intervals)
-        depth = range.metadata
-        size = range.last - range.first + 1
+        depth = GenomicFeatures.metadata(range)
+        size = rightposition(range) - leftposition(range) + 1
         cov += size
         min = Base.min(min, depth)
         max = Base.max(max, depth)

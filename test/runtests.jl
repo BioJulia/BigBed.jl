@@ -7,13 +7,7 @@ import Random
 import ColorTypes: RGB
 import FixedPointNumbers: N0f8
 
-import BioCore:
-    leftposition,
-    hasleftposition,
-    rightposition,
-    hasrightposition,
-    seqname,
-    hasseqname
+using BioCore
 
 using FormatSpecimens
 
@@ -71,12 +65,12 @@ end
         reader = BigBed.Reader(IOBuffer(data))
         records = collect(reader)
         @test length(records) == 1
-        @test BigBed.haschrom(records[1]) === hasseqname(records[1]) === true
-        @test BigBed.chrom(records[1]) == seqname(records[1]) == "chr1"
-        @test BigBed.haschromstart(records[1]) === hasleftposition(records[1]) === true
-        @test BigBed.chromstart(records[1]) === leftposition(records[1]) === 1
-        @test BigBed.haschromend(records[1]) === hasrightposition(records[1]) === true
-        @test BigBed.chromend(records[1]) === rightposition(records[1]) === 100
+        @test BigBed.haschrom(records[1]) === BioCore.hasseqname(records[1]) === true
+        @test BigBed.chrom(records[1]) == BioCore.seqname(records[1]) == "chr1"
+        @test BigBed.haschromstart(records[1]) === BioCore.hasleftposition(records[1]) === true
+        @test BigBed.chromstart(records[1]) === BioCore.leftposition(records[1]) === 1
+        @test BigBed.haschromend(records[1]) === BioCore.hasrightposition(records[1]) === true
+        @test BigBed.chromend(records[1]) === BioCore.rightposition(records[1]) === 100
         @test BigBed.hasname(records[1])
         @test BigBed.name(records[1]) == "some name"
         @test BigBed.hasscore(records[1])
@@ -160,7 +154,7 @@ end
         chromlen = 1_000_000
         Random.seed!(1234)
         chroms = ["one", "two", "three", "four", "five"]
-        intervals = IntervalCollection([Interval(i.seqname, i.first, i.last) for i in random_intervals(chroms, chromlen, 10_000)], true)
+        intervals = IntervalCollection([Interval(GenomicFeatures.seqname(i), GenomicFeatures.leftposition(i), GenomicFeatures.rightposition(i)) for i in random_intervals(chroms, chromlen, 10_000)], true)
 
         buffer = IOBuffer()
         data = buffer.data
@@ -172,7 +166,7 @@ end
 
         reader = BigBed.Reader(IOBuffer(data))
         queries = random_intervals(chroms, chromlen, 1000)
-        triplet(x::Interval) = String(x.seqname), x.first, x.last
+        triplet(x::Interval) = GenomicFeatures.seqname(x), GenomicFeatures.leftposition(x), GenomicFeatures.rightposition(x)
         triplet(x::BigBed.Record) = BigBed.chrom(x), BigBed.chromstart(x), BigBed.chromend(x)
         @test all(triplet.(collect(eachoverlap(intervals, q))) == triplet.(collect(eachoverlap(reader, q))) for q in queries)
         close(reader)

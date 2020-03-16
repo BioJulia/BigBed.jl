@@ -5,7 +5,6 @@ using GenomicFeatures
 
 import Random
 import ColorTypes: RGB
-import YAML
 import FixedPointNumbers: N0f8
 
 import BioCore:
@@ -16,17 +15,7 @@ import BioCore:
     seqname,
     hasseqname
 
-
-function get_bio_fmt_specimens(commit="222f58c8ef3e3480f26515d99d3784b8cfcca046")
-    path = joinpath(dirname(@__FILE__), "BioFmtSpecimens")
-    if !isdir(path)
-        run(`git clone https://github.com/BioJulia/BioFmtSpecimens.git $(path)`)
-    end
-    cd(path) do
-        #run(`git checkout $(commit)`)
-    end
-    return path
-end
+using FormatSpecimens
 
 # Generate an array of n random Interval{Int} object.
 # With sequence names samples from seqnames, and intervals drawn to lie in [1, maxpos].
@@ -159,11 +148,9 @@ end
             @test original == copy
         end
 
-        dir = joinpath(get_bio_fmt_specimens(), "BBI")
-        for specimen in YAML.load_file(joinpath(dir, "index.yml"))
-            valid = get(specimen, "valid", true)
-            bigbed = "bigbed" ∈ split(specimen["tags"])
-            if valid && bigbed
+        dir = path_of_format("BBI")
+        for specimen in list_valid_specimens("BBI")
+            if hastag(specimen, "bigbed")
                 test_round_trip(joinpath(dir, specimen["filename"]))
             end
         end

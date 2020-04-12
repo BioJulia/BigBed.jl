@@ -1,5 +1,52 @@
 using Test
 using BigBed
+using Distributions
+using GenomicFeatures
+
+import Random
+import ColorTypes: RGB
+import YAML
+import FixedPointNumbers: N0f8
+
+import BioCore:
+    leftposition,
+    hasleftposition,
+    rightposition,
+    hasrightposition,
+    seqname,
+    hasseqname
+
+
+function get_bio_fmt_specimens(commit="222f58c8ef3e3480f26515d99d3784b8cfcca046")
+    path = joinpath(dirname(@__FILE__), "BioFmtSpecimens")
+    if !isdir(path)
+        run(`git clone https://github.com/BioJulia/BioFmtSpecimens.git $(path)`)
+    end
+    cd(path) do
+        #run(`git checkout $(commit)`)
+    end
+    return path
+end
+
+# Generate an array of n random Interval{Int} object.
+# With sequence names samples from seqnames, and intervals drawn to lie in [1, maxpos].
+function random_intervals(seqnames, maxpos::Int, n::Int)
+    seq_dist = Categorical(length(seqnames))
+    strand_dist = Categorical(2)
+    length_dist = Normal(1000, 1000)
+    intervals = Vector{Interval{Int}}(undef, n)
+    for i in 1:n
+        intlen = maxpos
+        while intlen >= maxpos || intlen <= 0
+            intlen = ceil(Int, rand(length_dist))
+        end
+        first = rand(1:maxpos-intlen)
+        last = first + intlen - 1
+        strand = rand(strand_dist) == 1 ? STRAND_POS : STRAND_NEG
+        intervals[i] = Interval{Int}(seqnames[rand(seq_dist)], first, last, strand, i)
+    end
+    return intervals
+end
 
 @testset "BigBed" begin
     @testset "empty" begin

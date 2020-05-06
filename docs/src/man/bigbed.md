@@ -1,13 +1,8 @@
-# BigBed.jl
-
-## Description
-
-bigBed is a binary file format for representing genomic annotations and often created from BED files.
-bigBed files are indexed to quickly fetch specific regions.
+# BigBed
 
 I/O tools for bigBed are provided by the `BigBed` module, which exports following three types:
 * Reader type: `BigBed.Reader`
-* Writre type: `BigBed.Writer`
+* Writer type: `BigBed.Writer`
 * Element type: `BigBed.Record`
 
 

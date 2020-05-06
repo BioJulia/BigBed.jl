@@ -1,4 +1,5 @@
-# <img src="./docs/src/assets/logo.svg" width="30%" align="right" /> BigBed.jl
+# BigBed.jl
+
 
 [![Project Status: WIP – Initial development is in progress, but there has not yet been a stable, usable release suitable for the public.](https://www.repostatus.org/badges/latest/wip.svg)](https://www.repostatus.org/#wip)
 [![Latest Release](https://img.shields.io/github/release/BioJulia/BigBed.jl.svg)](https://github.com/BioJulia/BigBed.jl/releases/latest)
@@ -7,7 +8,7 @@
 [![Latest documentation](https://img.shields.io/badge/docs-dev-blue.svg)](https://biojulia.github.io/BigBed.jl/dev/)
 [![Join the chat at https://gitter.im/BioJulia/BigBed.jl](https://badges.gitter.im/BioJulia/BigBed.jl.svg)](https://gitter.im/BioJulia/BigBed.jl)
 
-> This project follows the [semver](http://semver.org) pro forma and uses the [git-flow branching model](https://nvie.com/posts/a-successful-git-branching-model/ "original blog post").
+> This project follows the [semver](http://semver.org) pro forma and uses the [git-flow branching model](https://nvie.com/posts/a-successful-git-branching-model/).
 
 ## Description
 This package provides data representation and IO tools for the bigBed file format.
@@ -29,6 +30,7 @@ add BigBed
 ```
 
 If you are interested in the cutting edge of the development, please check out the [develop branch](https://github.com/BioJulia/BigBed.jl/tree/develop) to try new features before release.
+
 
 ## Testing
 BigBed is tested against Julia `1.X` on Linux, OS X, and Windows.

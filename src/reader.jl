@@ -76,7 +76,7 @@ const data_machine = (function ()
         chromend = re"...."
         chromend.actions[:exit] = [:record_chromend]
 
-        name = re"[ -~]*"
+        name = re"[ -~]+"
         name.actions[:enter] = [:mark]
         name.actions[:exit]  = [:record_name]
 

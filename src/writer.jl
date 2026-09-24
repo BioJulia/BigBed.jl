@@ -157,7 +157,7 @@ function Base.write(writer::Writer, interval::GenomicFeatures.Interval{T}) where
     return write_impl(writer, chromid, UInt32(leftposition(interval) - 1), UInt32(rightposition(interval)), GenomicFeatures.metadata(interval)...)
 end
 
-function Base.close(writer::Writer)
+function finalize_file(writer::Writer)
     state = writer.state
     if state.started
         finish_section!(writer)
@@ -197,14 +197,18 @@ function Base.close(writer::Writer)
     # write zoom
     seekend(stream)
     zoomheaders = BBI.write_zoom(stream, writer.zoombuffer, writer.zoomlevels, ZOOM_SCALE_FACTOR)
+    @assert length(zoomheaders) == writer.zoomlevels
 
     # fill zoom headers
     seek(stream, BBI.HEADER_SIZE)
     for zheader in zoomheaders
         write(stream, zheader)
     end
+end
 
-    close(stream)
+function Base.close(writer::Writer)
+    finalize_file(writer)
+    close(writer.stream)
     return
 end
 

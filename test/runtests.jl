@@ -36,8 +36,8 @@ end
         buffer = IOBuffer()
         data = buffer.data
         writer = BigBed.Writer(buffer, [("chr1", 1000)])
-        close(writer)
-        reader = BigBed.Reader(IOBuffer(data))
+        BigBed.finalize_file(writer)
+        reader = BigBed.Reader(seekstart(buffer))
         @test length(collect(reader)) == 0
     end
 
@@ -46,8 +46,8 @@ end
         data = buffer.data
         writer = BigBed.Writer(buffer, [("chr1", 1000)])
         write(writer, ("chr1", 50, 100, "name1"))
-        close(writer)
-        reader = BigBed.Reader(IOBuffer(data))
+        BigBed.finalize_file(writer)
+        reader = BigBed.Reader(seekstart(buffer))
         records = collect(reader)
         @test length(records) == 1
         @test BigBed.chrom(records[1]) == "chr1"
@@ -61,8 +61,8 @@ end
         data = buffer.data
         writer = BigBed.Writer(buffer, [("chr1", 1000)])
         write(writer, ("chr1", 1, 100, "some name", 100, '+', 10, 90, RGB(0.5, 0.1, 0.2), 2, [4, 10], [10, 20]))
-        close(writer)
-        reader = BigBed.Reader(IOBuffer(data))
+        BigBed.finalize_file(writer)
+        reader = BigBed.Reader(seekstart(buffer))
         records = collect(reader)
         @test length(records) == 1
         @test BigBed.haschrom(records[1]) === BioCore.hasseqname(records[1]) === true
@@ -108,8 +108,8 @@ end
             n += 1
             p += sz + 1
         end
-        close(writer)
-        reader = BigBed.Reader(IOBuffer(data))
+        BigBed.finalize_file(writer)
+        reader = BigBed.Reader(seekstart(buffer))
         records = collect(reader)
         @test length(records) == 10_000 + n
         records = collect(eachoverlap(reader, Interval("chr1", 50_001, 50_165)))
@@ -128,10 +128,10 @@ end
                 write(writer, t)
                 push!(original, t)
             end
-            close(writer)
+            BigBed.finalize_file(writer)
             close(reader)
 
-            reader = BigBed.Reader(IOBuffer(data))
+            reader = BigBed.Reader(seekstart(buffer))
             copy = []
             for record in reader
                 t = (BigBed.chrom(record), BigBed.chromstart(record), BigBed.chromend(record), BigBed.optionals(record)...)
@@ -162,9 +162,9 @@ end
         for i in intervals
             write(writer, i)
         end
-        close(writer)
+        BigBed.finalize_file(writer)
 
-        reader = BigBed.Reader(IOBuffer(data))
+        reader = BigBed.Reader(seekstart(buffer))
         queries = random_intervals(chroms, chromlen, 1000)
         triplet(x::Interval) = GenomicFeatures.seqname(x), GenomicFeatures.leftposition(x), GenomicFeatures.rightposition(x)
         triplet(x::BigBed.Record) = BigBed.chrom(x), BigBed.chromstart(x), BigBed.chromend(x)

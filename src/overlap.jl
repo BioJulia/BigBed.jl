@@ -26,7 +26,7 @@ function GenomicFeatures.eachoverlap(reader::Reader, interval::GenomicFeatures.I
 end
 
 mutable struct OverlapIteratorState
-    state::BioCore.Ragel.State
+    state::BioGenerics.Automa.State
     data::Vector{UInt8}
     done::Bool
     record::Record
@@ -37,15 +37,11 @@ end
 function Base.iterate(iter::OverlapIterator)
     data = Vector{UInt8}(undef, iter.reader.header.uncompress_buf_size)
     blocks = BBI.find_overlapping_blocks(iter.reader.index, iter.chromid, iter.chromstart, iter.chromend)
-    if !isempty(blocks)
-        seek(iter.reader.stream, blocks[1].offset)
-    end
+    dummy_stream = NoopStream(IOBuffer())
     state = OverlapIteratorState(
-        BioCore.Ragel.State(
-            data_machine.start_state,
-            Libz.ZlibInflateInputStream(iter.reader.stream, reset_on_end=false)),
+        BioGenerics.Automa.State(dummy_stream, 1, 1, false),
         data,
-        isempty(blocks), Record(), blocks, isempty(blocks) ? 1 : 2)
+        isempty(blocks), Record(), blocks, 1)
     return iterate(iter, state)
 end
 
@@ -63,7 +59,9 @@ function advance!(iter::OverlapIterator, state::OverlapIteratorState)
             block = state.blocks[state.current_block]
             seek(iter.reader.stream, block.offset)
             size = BBI.uncompress!(state.data, read(iter.reader.stream, block.size))
-            state.state = BioCore.Ragel.State(data_machine.start_state, BufferedStreams.BufferedInputStream(state.data[1:size]))
+            state.state = BioGenerics.Automa.State(
+                NoopStream(IOBuffer(view(state.data, 1:size))),
+                1, 1, false)
             state.current_block += 1
         end
         if state.done || (state.current_block > lastindex(state.blocks) && eof(state.state.stream))
@@ -71,7 +69,7 @@ function advance!(iter::OverlapIterator, state::OverlapIteratorState)
             return state
         end
 
-        _read!(iter.reader, state.state, state.record)
+        _read!(state.state.stream, state.state, state.record)
         state.record.reader = iter.reader
         if overlaps(state.record, iter.chromid, iter.chromstart, iter.chromend)
             return state

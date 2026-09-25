@@ -1,7 +1,18 @@
 # BigBed Reader
 # =============
 
-struct Reader <: BioCore.IO.AbstractReader
+import Automa.Stream: @mark, @markpos, @relpos, @abspos
+import CodecZlib.TranscodingStreams: TranscodingStreams, TranscodingStream, NoopStream
+
+function appendfrom!(dst, dpos, src, spos, n)
+    if length(dst) < dpos + n - 1
+        resize!(dst, dpos + n - 1)
+    end
+    unsafe_copyto!(dst, dpos, src, spos, n)
+    return dst
+end
+
+struct Reader <: BioGenerics.IO.AbstractReader
     stream::IO
     header::BBI.Header
     zooms::Vector{BBI.Zoom}
@@ -18,7 +29,7 @@ function Base.eltype(::Type{Reader})
     return Record
 end
 
-function BioCore.IO.stream(reader::Reader)
+function BioGenerics.IO.stream(reader::Reader)
     return reader.stream
 end
 
@@ -144,31 +155,6 @@ const data_machine = (function ()
     return Automa.compile(data)
 end)()
 
-const actions = Dict(
-    :record_chromid                => :(record.chromid    = unsafe_load(convert(Ptr{UInt32}, pointer(data, p-4))); record.ncols += 1),
-    :record_chromstart             => :(record.chromstart = unsafe_load(convert(Ptr{UInt32}, pointer(data, p-4))); record.ncols += 1),
-    :record_chromend               => :(record.chromend   = unsafe_load(convert(Ptr{UInt32}, pointer(data, p-4))); record.ncols += 1),
-    :record_name                   => :(record.name       = (mark:p-1) .- offset; record.ncols += 1),
-    :record_score                  => :(record.score      = (mark:p-1) .- offset; record.ncols += 1),
-    :record_strand                 => :(record.strand     =       p    .- offset; record.ncols += 1),
-    :record_thickstart             => :(record.thickstart = (mark:p-1) .- offset; record.ncols += 1),
-    :record_thickend               => :(record.thickend   = (mark:p-1) .- offset; record.ncols += 1),
-    :record_itemrgb                => :(record.itemrgb    = (mark:p-1) .- offset; record.ncols += 1),
-    :record_blockcount             => :(record.blockcount = (mark:p-1) .- offset; record.ncols += 1),
-    :record_blocksizes_blocksize   => :(push!(record.blocksizes, (mark:p-1) .- offset)),
-    :record_blocksizes             => :(record.ncols += 1),
-    :record_blockstarts_blockstart => :(push!(record.blockstarts, (mark:p-1) .- offset)),
-    :record_blockstarts            => :(record.ncols += 1),
-    :record => quote
-        BioCore.ReaderHelper.resize_and_copy!(record.data, data, BioCore.ReaderHelper.upanchor!(stream):p-1)
-        record.filled = (offset+1:p-1) .- offset
-        found_record = true
-        @escape
-    end,
-    :countrecord => :(),
-    :mark => :(mark = p),
-    :anchor => :(BioCore.ReaderHelper.anchor!(stream, p); offset = p - 1))
-
 mutable struct Record
     chromid::UInt32
     chromstart::UInt32
@@ -202,19 +188,75 @@ mutable struct Record
     end
 end
 
-eval(
-    BioCore.ReaderHelper.generate_read_function(
-        Reader,
-        data_machine,
-        :(offset = mark = 0),
-        actions))
+const actions = Dict(
+    :anchor                        => :(@mark),
+    :record_chromid                => :(record.chromid    = unsafe_load(convert(Ptr{UInt32}, pointer(data, p-4))); record.ncols += 1),
+    :record_chromstart             => :(record.chromstart = unsafe_load(convert(Ptr{UInt32}, pointer(data, p-4))); record.ncols += 1),
+    :record_chromend               => :(record.chromend   = unsafe_load(convert(Ptr{UInt32}, pointer(data, p-4))); record.ncols += 1),
+    :mark                          => :(pos = @relpos(p)),
+    :record_name                   => :(record.name       = (pos:@relpos(p-1)); record.ncols += 1),
+    :record_score                  => :(record.score      = (pos:@relpos(p-1)); record.ncols += 1),
+    :record_strand                 => :(record.strand     = @relpos(p); record.ncols += 1),
+    :record_thickstart             => :(record.thickstart = (pos:@relpos(p-1)); record.ncols += 1),
+    :record_thickend               => :(record.thickend   = (pos:@relpos(p-1)); record.ncols += 1),
+    :record_itemrgb                => :(record.itemrgb    = (pos:@relpos(p-1)); record.ncols += 1),
+    :record_blockcount             => :(record.blockcount = (pos:@relpos(p-1)); record.ncols += 1),
+    :record_blocksizes_blocksize   => :(push!(record.blocksizes, (pos:@relpos(p-1)))),
+    :record_blocksizes             => :(record.ncols += 1),
+    :record_blockstarts_blockstart => :(push!(record.blockstarts, (pos:@relpos(p-1)))),
+    :record_blockstarts            => :(record.ncols += 1),
+    :record                        => quote
+        appendfrom!(record.data, 1, data, @markpos, p - @markpos)
+        record.filled = 1:(p - @markpos)
+        found_record = true
+        @escape
+    end,
+    :countrecord                   => :()
+)
 
+const initcode = quote
+    pos = 0
+    linenum = 0
+    found_record = false
+    cs, linenum = state
+end
+
+const loopcode = quote
+    if found_record
+        @goto __return__
+    end
+end
+
+Automa.Stream.generate_reader(
+    :_readrecord!,
+    data_machine,
+    arguments = (:(record::Record), :(state::Tuple{Int,Int})),
+    actions = actions,
+    initcode = initcode,
+    loopcode = loopcode,
+    returncode = :(return cs, linenum, found_record)
+) |> eval
+
+function _read!(stream::TranscodingStream, state::BioGenerics.Automa.State, record::Record)
+    initialize!(record)
+    cs, ln, found = _readrecord!(stream, record, (state.state, state.linenum))
+    state.state = cs
+    state.linenum = ln
+    state.filled = found
+    if found
+        return record
+    end
+    if cs == 0 || eof(stream)
+        throw(EOFError())
+    end
+    throw(ArgumentError("malformed BigBed file"))
+end
 
 # Iterator
 # --------
 
 mutable struct IteratorState
-    state::BioCore.Ragel.State
+    state::BioGenerics.Automa.State
     record::Record
     n_records::UInt64
     current_record::UInt64
@@ -224,15 +266,15 @@ function Base.iterate(reader::Reader)
     seek(reader.stream, reader.header.full_data_offset)
     # this is defined as UInt32 in the spces but actually UInt64
     record_count = read(reader.stream, UInt64)
-    datastream = Libz.ZlibInflateInputStream(reader.stream)
-    parser_state = BioCore.Ragel.State(data_machine.start_state, datastream)
+    datastream = CodecZlib.ZlibDecompressorStream(reader.stream)
+    parser_state = BioGenerics.Automa.State(datastream, 1, 1, false)
     state = IteratorState(parser_state, Record(), record_count, 0)
     return iterate(reader, state)
 end
 
 function Base.iterate(reader::Reader, state::IteratorState)
     if state.current_record < state.n_records
-        _read!(reader, state.state, state.record)
+        _read!(state.state.stream, state.state, state.record)
         state.record.reader = reader
         state.current_record += 1
         return copy(state.record), state

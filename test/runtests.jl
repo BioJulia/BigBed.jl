@@ -7,7 +7,7 @@ import Random
 import ColorTypes: RGB
 import FixedPointNumbers: N0f8
 
-using BioCore
+using BioGenerics
 
 using FormatSpecimens
 
@@ -65,12 +65,12 @@ end
         reader = BigBed.Reader(seekstart(buffer))
         records = collect(reader)
         @test length(records) == 1
-        @test BigBed.haschrom(records[1]) === BioCore.hasseqname(records[1]) === true
-        @test BigBed.chrom(records[1]) == BioCore.seqname(records[1]) == "chr1"
-        @test BigBed.haschromstart(records[1]) === BioCore.hasleftposition(records[1]) === true
-        @test BigBed.chromstart(records[1]) === BioCore.leftposition(records[1]) === 1
-        @test BigBed.haschromend(records[1]) === BioCore.hasrightposition(records[1]) === true
-        @test BigBed.chromend(records[1]) === BioCore.rightposition(records[1]) === 100
+        @test BigBed.haschrom(records[1]) === BioGenerics.hasseqname(records[1]) === true
+        @test BigBed.chrom(records[1]) == BioGenerics.seqname(records[1]) == "chr1"
+        @test BigBed.haschromstart(records[1]) === BioGenerics.hasleftposition(records[1]) === true
+        @test BigBed.chromstart(records[1]) === BioGenerics.leftposition(records[1]) === 1
+        @test BigBed.haschromend(records[1]) === BioGenerics.hasrightposition(records[1]) === true
+        @test BigBed.chromend(records[1]) === BioGenerics.rightposition(records[1]) === 100
         @test BigBed.hasname(records[1])
         @test BigBed.name(records[1]) == "some name"
         @test BigBed.hasscore(records[1])

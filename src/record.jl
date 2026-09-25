@@ -70,7 +70,7 @@ function initialize!(record::Record)
     return record
 end
 
-function BioCore.isfilled(record::Record)
+function BioGenerics.isfilled(record::Record)
     return !isempty(record.filled)
 end
 
@@ -156,11 +156,11 @@ function haschrom(record::Record)
     return isfilled(record)
 end
 
-function BioCore.seqname(record::Record)
+function BioGenerics.seqname(record::Record)
     return chrom(record)
 end
 
-function BioCore.hasseqname(record::Record)
+function BioGenerics.hasseqname(record::Record)
     return haschrom(record)
 end
 
@@ -178,11 +178,11 @@ function haschromstart(record::Record)
     return isfilled(record)
 end
 
-function BioCore.leftposition(record::Record)
+function BioGenerics.leftposition(record::Record)
     return chromstart(record)
 end
 
-function BioCore.hasleftposition(record::Record)
+function BioGenerics.hasleftposition(record::Record)
     return haschromstart(record)
 end
 
@@ -200,11 +200,11 @@ function haschromend(record::Record)
     return isfilled(record)
 end
 
-function BioCore.rightposition(record::Record)
+function BioGenerics.rightposition(record::Record)
     return chromend(record)
 end
 
-function BioCore.hasrightposition(record::Record)
+function BioGenerics.hasrightposition(record::Record)
     return haschromend(record)
 end
 

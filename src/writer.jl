@@ -46,7 +46,7 @@ mutable struct WriterState
     end
 end
 
-struct Writer <: BioCore.IO.AbstractWriter
+struct Writer <: BioGenerics.IO.AbstractWriter
     # output stream
     stream::IO
 
@@ -212,7 +212,7 @@ function Base.close(writer::Writer)
     return
 end
 
-function BioCore.IO.stream(writer::Writer)
+function BioGenerics.IO.stream(writer::Writer)
     return writer.stream
 end
 

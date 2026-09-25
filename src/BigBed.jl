@@ -10,16 +10,14 @@ module BigBed
 
 using BED
 using BBI
-using BioCore
+import BioGenerics: BioGenerics, isfilled, seqname, hasseqname, leftposition, hasleftposition, rightposition, hasrightposition
 
 import Automa
 import Automa.RegExp: @re_str
-import BufferedStreams
+import CodecZlib
 import ColorTypes
 import FixedPointNumbers: N0f8
 import GenomicFeatures: GenomicFeatures, Interval, seqname, leftposition, rightposition
-import Libz
-
 
 include("reader.jl")
 include("writer.jl")

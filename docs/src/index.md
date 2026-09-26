@@ -4,6 +4,7 @@
 [![Project Status: Active – The project has reached a stable, usable state and is being actively developed.](https://www.repostatus.org/badges/latest/active.svg)](https://www.repostatus.org/#active)
 [![Latest Release](https://img.shields.io/github/release/BioJulia/BigBed.jl.svg)](https://github.com/BioJulia/BigBed.jl/releases/latest)
 [![MIT license](https://img.shields.io/badge/license-MIT-green.svg)](https://github.com/BioJulia/BigBed.jl/blob/master/LICENSE)
+[![DOI](https://zenodo.org/badge/152175901.svg)](https://zenodo.org/badge/latestdoi/152175901)
 [![Stable documentation](https://img.shields.io/badge/docs-stable-blue.svg)](https://biojulia.github.io/BigBed.jl/stable)
 [![Latest documentation](https://img.shields.io/badge/docs-dev-blue.svg)](https://biojulia.github.io/BigBed.jl/dev/)
 [![Join the chat at https://gitter.im/BioJulia/BigBed.jl](https://badges.gitter.im/BioJulia/BigBed.jl.svg)](https://gitter.im/BioJulia/BigBed.jl)
